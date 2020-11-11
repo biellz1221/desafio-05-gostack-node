@@ -1,10 +1,18 @@
 import { Router } from 'express';
-import { getCustomRepository } from 'typeorm';
+import { getCustomRepository, getRepository } from 'typeorm';
+
+import multer from 'multer';
+
 import TransactionsRepository from '../repositories/TransactionsRepository';
 
 import CreateTransactionService from '../services/CreateTransactionService';
 import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import ImportTransactionsService from '../services/ImportTransactionsService';
+
+import uploadConfig from '../config/upload';
+import Category from '../models/Category';
+
+const upload = multer(uploadConfig);
 
 const transactionsRouter = Router();
 
@@ -41,9 +49,22 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.status(204).send();
 });
 
-transactionsRouter.post('/import', async (request, response) => {
-  // TODO
-  return response.json({ ok: true });
+transactionsRouter.post(
+  '/import',
+  upload.single('file'),
+  async (request, response) => {
+    const importTransactionsService = new ImportTransactionsService();
+    const transactions = await importTransactionsService.execute(
+      request.file.filename,
+    );
+
+    return response.status(201).json(transactions);
+  },
+);
+
+transactionsRouter.get('/cat', async (request, response) => {
+  const categories = await getRepository(Category).find();
+  return response.status(200).json(categories);
 });
 
 export default transactionsRouter;
