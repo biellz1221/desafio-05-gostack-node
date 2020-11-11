@@ -47,9 +47,6 @@ class CreateTransactionService {
       category: transactionCategory,
     });
 
-    console.log('create transaction category', category);
-    console.log('create transaction', transaction);
-
     await transactionsRepository.save(transaction);
     return transaction;
   }
